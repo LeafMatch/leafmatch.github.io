@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pong</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #pong-canvas { background: #111; display: block; margin: 30px auto; }
+    </style>
+</head>
+<body>
+    <h1>Pong</h1>
+    <canvas id="pong-canvas" width="500" height="300"></canvas>
+    <p>Player: W/S &nbsp;|&nbsp; CPU: Auto</p>
+    <button onclick="startPong()">Restart</button>
+    <p><a href="index.html">Back to Home</a></p>
+    <script>
+        const canvas = document.getElementById('pong-canvas');
+        const ctx = canvas.getContext('2d');
+        let player = {x: 10, y: 120, w: 10, h: 60, dy: 0};
+        let cpu = {x: 480, y: 120, w: 10, h: 60, dy: 0};
+        let ball, interval, playerScore, cpuScore, running;
+
+        function resetBall() {
+            ball = {
+                x: 250, y: 150,
+                r: 7,
+                dx: Math.random() < 0.5 ? 3 : -3,
+                dy: (Math.random() - 0.5) * 5
+            };
+        }
+        function draw() {
+            ctx.clearRect(0,0,500,300);
+            ctx.fillStyle="#fff";
+            ctx.fillRect(player.x, player.y, player.w, player.h);
+            ctx.fillRect(cpu.x, cpu.y, cpu.w, cpu.h);
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.r, 0, 2*Math.PI);
+            ctx.fill();
+            ctx.font = "20px Arial";
+            ctx.fillText(playerScore, 200, 30);
+            ctx.fillText(cpuScore, 300, 30);
+        }
+        function update() {
+            // Move player
+            player.y += player.dy;
+            if(player.y < 0) player.y = 0;
+            if(player.y + player.h > 300) player.y = 300 - player.h;
+            // Move cpu
+            cpu.dy = (ball.y - (cpu.y+cpu.h/2)) * 0.1;
+            cpu.y += cpu.dy;
+            if(cpu.y < 0) cpu.y = 0;
+            if(cpu.y + cpu.h > 300) cpu.y = 300 - cpu.h;
+            // Move ball
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+            // Collisions
+            if(ball.y - ball.r < 0 || ball.y + ball.r > 300) ball.dy *= -1;
+            if(collide(player, ball)) { ball.dx *= -1; ball.x = player.x+player.w+ball.r;}
+            if(collide(cpu, ball)) { ball.dx *= -1; ball.x = cpu.x-ball.r;}
+            // Score
+            if(ball.x < 0) { cpuScore++; resetBall(); }
+            if(ball.x > 500) { playerScore++; resetBall(); }
+            draw();
+        }
+        function collide(p, b) {
+            return b.x-b.r < p.x+p.w && b.x+b.r > p.x && b.y+b.r > p.y && b.y-b.r < p.y+p.h;
+        }
+        document.addEventListener("keydown", e=>{
+            if(e.key=="w"||e.key=="W") player.dy = -5;
+            if(e.key=="s"||e.key=="S") player.dy = 5;
+        });
+        document.addEventListener("keyup", e=>{
+            if(e.key=="w"||e.key=="W"||e.key=="s"||e.key=="S") player.dy = 0;
+        });
+        function startPong() {
+            player.y = 120; cpu.y = 120; player.dy = cpu.dy = 0;
+            playerScore = 0; cpuScore = 0;
+            resetBall();
+            clearInterval(interval);
+            interval = setInterval(update, 1000/60);
+        }
+        startPong();
+    </script>
+</body>
+</html>

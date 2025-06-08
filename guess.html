@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Guess the Number</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #guess-input { font-size: 1.2em; margin: 10px;}
+    </style>
+</head>
+<body>
+    <h1>Guess the Number</h1>
+    <p>I'm thinking of a number between 1 and 100.</p>
+    <input id="guess-input" type="number" min="1" max="100" />
+    <button onclick="checkGuess()">Guess</button>
+    <p id="guess-status"></p>
+    <button onclick="startGuess()">Restart</button>
+    <p><a href="index.html">Back to Home</a></p>
+    <script>
+        let answer, tries;
+
+        function startGuess() {
+            answer = Math.floor(Math.random() * 100) + 1;
+            tries = 0;
+            document.getElementById('guess-status').textContent = '';
+            document.getElementById('guess-input').value = '';
+        }
+
+        function checkGuess() {
+            const val = parseInt(document.getElementById('guess-input').value, 10);
+            if (isNaN(val)) return;
+            tries++;
+            if (val === answer) {
+                document.getElementById('guess-status').textContent = `Correct! You guessed it in ${tries} tries.`;
+            } else if (val < answer) {
+                document.getElementById('guess-status').textContent = 'Too low!';
+            } else {
+                document.getElementById('guess-status').textContent = 'Too high!';
+            }
+        }
+
+        startGuess();
+    </script>
+</body>
+</html>

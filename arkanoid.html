@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Arkanoid</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #arkanoid-canvas { background: #222; display: block; margin: 30px auto; }
+    </style>
+</head>
+<body>
+    <h1>Arkanoid</h1>
+    <canvas id="arkanoid-canvas" width="480" height="320"></canvas>
+    <p>Move: Left/Right Arrows</p>
+    <button onclick="startArkanoid()">Restart</button>
+    <p><a href="index.html">Back to Home</a></p>
+    <script>
+    const canvas = document.getElementById("arkanoid-canvas");
+    const ctx = canvas.getContext("2d");
+    let paddle, ball, bricks, rightPressed, leftPressed, score, lives, interval;
+    function resetArkanoid() {
+        paddle = {x:202, y:300, w:75, h:10};
+        ball = {x:240, y:200, dx:3, dy:-3, r:8};
+        bricks = [];
+        for(let c=0;c<6;c++) for(let r=0;r<5;r++)
+            bricks.push({x: c*76+10, y: r*20+30, w:70, h:14, alive:true});
+        score=0; lives=3;
+    }
+    function draw() {
+        ctx.clearRect(0,0,480,320);
+        bricks.forEach(b=>{
+            if(b.alive) {
+                ctx.fillStyle="#fb0";
+                ctx.fillRect(b.x,b.y,b.w,b.h);
+            }
+        });
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+        ctx.fillStyle="#fff";
+        ctx.fill();
+        ctx.fillStyle="#0f0";
+        ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
+        ctx.font = "16px Arial";
+        ctx.fillStyle = "#fff";
+        ctx.fillText("Score: "+score, 8, 20);
+        ctx.fillText("Lives: "+lives, 390, 20);
+    }
+    function update() {
+        ball.x += ball.dx; ball.y += ball.dy;
+        if(ball.x < ball.r || ball.x > 480-ball.r) ball.dx *= -1;
+        if(ball.y < ball.r) ball.dy *= -1;
+        if(ball.y+ball.r > paddle.y && ball.x > paddle.x && ball.x < paddle.x+paddle.w)
+            ball.dy *= -1;
+        bricks.forEach(b=>{
+            if(b.alive&&ball.x>b.x&&ball.x<b.x+b.w&&ball.y-ball.r<b.y+b.h&&ball.y+ball.r>b.y) {
+                b.alive=false; ball.dy *= -1; score+=10;
+            }
+        });
+        if(ball.y > 320-ball.r) {
+            lives--;
+            if(lives==0) {
+                clearInterval(interval);
+                setTimeout(()=>alert("Game Over! Score: "+score), 100);
+            } else {
+                ball.x=240; ball.y=200; ball.dx=3; ball.dy=-3;
+                paddle.x=202;
+            }
+        }
+        if(rightPressed && paddle.x < 480-paddle.w) paddle.x += 6;
+        if(leftPressed && paddle.x > 0) paddle.x -= 6;
+        if(bricks.every(b=>!b.alive)) {
+            clearInterval(interval);
+            setTimeout(()=>alert("You win! Score: "+score), 100);
+        }
+        draw();
+    }
+    document.addEventListener("keydown", e=>{
+        if(e.key==="ArrowRight") rightPressed = true;
+        if(e.key==="ArrowLeft") leftPressed = true;
+    });
+    document.addEventListener("keyup", e=>{
+        if(e.key==="ArrowRight") rightPressed = false;
+        if(e.key==="ArrowLeft") leftPressed = false;
+    });
+    function startArkanoid() {
+        resetArkanoid();
+        clearInterval(interval);
+        interval = setInterval(update, 1000/60);
+    }
+    startArkanoid();
+    </script>
+</body>
+</html>

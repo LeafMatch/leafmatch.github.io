@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Frogger</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #frogger-canvas { background: #224422; display: block; margin: 30px auto; }
+    </style>
+</head>
+<body>
+    <h1>Frogger</h1>
+    <canvas id="frogger-canvas" width="300" height="300"></canvas>
+    <p>Move: Arrow Keys</p>
+    <button onclick="startFrogger()">Restart</button>
+    <p><a href="index.html">Back to Home</a></p>
+    <script>
+    const canvas = document.getElementById("frogger-canvas");
+    const ctx = canvas.getContext("2d");
+    const ROWS = 10, COLS = 10, SQ = 30;
+    let frog, cars, logs, interval, win, lose;
+    function drawBoard() {
+        ctx.fillStyle = "#224422";
+        ctx.fillRect(0,0,300,300);
+        for(let r=0;r<ROWS;r++) {
+            if(r===0) { ctx.fillStyle="#2288ff"; ctx.fillRect(0,0,300,30);}
+            if(r>0&&r<4) { ctx.fillStyle="#44aaff"; ctx.fillRect(0,r*SQ,300,SQ);}
+            if(r>4&&r<8) { ctx.fillStyle="#552200"; ctx.fillRect(0,r*SQ,300,SQ);}
+        }
+    }
+    function drawFrog() {
+        ctx.fillStyle="#0f0";
+        ctx.fillRect(frog.x*SQ+4, frog.y*SQ+4, SQ-8, SQ-8);
+    }
+    function drawCars() {
+        ctx.fillStyle="#f00";
+        cars.forEach(car=>ctx.fillRect(car.x*SQ+2,car.y*SQ+6,SQ-4,SQ-12));
+    }
+    function drawLogs() {
+        ctx.fillStyle="#aa7";
+        logs.forEach(log=>ctx.fillRect(log.x*SQ,log.y*SQ,SQ*2,SQ-8));
+    }
+    function moveCars() {
+        cars.forEach(car=>{
+            car.x += car.dx;
+            if(car.x < -2) car.x = COLS;
+            if(car.x > COLS) car.x = -2;
+        });
+    }
+    function moveLogs() {
+        logs.forEach(log=>{
+            log.x += log.dx;
+            if(log.x < -2) log.x = COLS;
+            if(log.x > COLS) log.x = -2;
+        });
+    }
+    function updateFrogOnLog() {
+        logs.forEach(log=>{
+            if(frog.y===log.y && frog.x>=log.x && frog.x<log.x+2) frog.x += log.dx;
+        });
+    }
+    function checkCollisions() {
+        if(frog.y<1) {win=true;}
+        if(frog.y>4&&frog.y<8) {
+            if(cars.some(car=>car.y===frog.y&&car.x===frog.x)) {lose=true;}
+        }
+        if(frog.y>0&&frog.y<4) {
+            if(!logs.some(log=>log.y===frog.y&&frog.x>=log.x&&frog.x<log.x+2)) {lose=true;}
+        }
+        if(frog.x<0||frog.x>=COLS) lose=true;
+    }
+    function draw() {
+        drawBoard();
+        drawLogs();
+        drawCars();
+        drawFrog();
+    }
+    function gameLoop() {
+        moveCars();
+        moveLogs();
+        updateFrogOnLog();
+        checkCollisions();
+        draw();
+        if(win||lose) {
+            clearInterval(interval);
+            setTimeout(()=>alert(win?"You Win!":"Game Over!"),100);
+        }
+    }
+    document.addEventListener("keydown",e=>{
+        if(win||lose)return;
+        if(e.key==="ArrowLeft") frog.x--;
+        if(e.key==="ArrowRight") frog.x++;
+        if(e.key==="ArrowUp") frog.y--;
+        if(e.key==="ArrowDown") frog.y++;
+    });
+    function startFrogger() {
+        frog={x:4,y:9};
+        cars = [
+            {x:0,y:5,dx:1},{x:5,y:6,dx:-1},{x:2,y:7,dx:1}
+        ];
+        logs = [
+            {x:0,y:1,dx:1},{x:5,y:2,dx:-1},{x:2,y:3,dx:1}
+        ];
+        win=lose=false;
+        clearInterval(interval);
+        interval = setInterval(gameLoop, 200);
+        draw();
+    }
+    startFrogger();
+    </script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Galaga</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #galaga-canvas { background: #000; display: block; margin: 30px auto; }
+    </style>
+</head>
+<body>
+    <h1>Galaga</h1>
+    <canvas id="galaga-canvas" width="320" height="400"></canvas>
+    <p>Move: Left/Right Arrows &nbsp;|&nbsp; Shoot: Space</p>
+    <button onclick="startGalaga()">Restart</button>
+    <p><a href="index.html">Back to Home</a></p>
+    <script>
+    const canvas = document.getElementById("galaga-canvas");
+    const ctx = canvas.getContext("2d");
+    let player, enemies, bullets, enemyBullets, score, interval, left, right, space, running;
+    function resetGalaga() {
+        player={x:150,y:370,w:20,h:14,alive:true};
+        bullets=[]; enemyBullets=[];
+        enemies=[];
+        for(let r=0;r<4;r++)
+            for(let c=0;c<8;c++)
+                enemies.push({x:30+c*32,y:30+r*28,w:18,h:14,alive:true,dy:0});
+        score=0; left=right=space=false; running=true;
+    }
+    function draw() {
+        ctx.clearRect(0,0,320,400);
+        ctx.fillStyle="#0f0";
+        if(player.alive) ctx.fillRect(player.x,player.y,player.w,player.h);
+        ctx.fillStyle="#fff";
+        enemies.forEach(e=>{if(e.alive)ctx.fillRect(e.x,e.y,e.w,e.h);});
+        ctx.fillStyle="#ff0";
+        bullets.forEach(b=>ctx.fillRect(b.x,b.y,2,8));
+        ctx.fillStyle="#f00";
+        enemyBullets.forEach(b=>ctx.fillRect(b.x,b.y,2,8));
+        ctx.font="16px Arial";ctx.fillStyle="#fff";
+        ctx.fillText("Score: "+score,10,390);
+    }
+    function move() {
+        if(left && player.x>0) player.x-=4;
+        if(right && player.x<320-player.w) player.x+=4;
+        // player bullets
+        bullets.forEach(b=>b.y-=7);
+        bullets = bullets.filter(b=>b.y>-10);
+        // enemies
+        let dir=1;
+        if(enemies.some(e=>e.x>300&&e.alive)) dir=-1;
+        if(enemies.some(e=>e.x<2&&e.alive)) dir=1;
+        enemies.forEach(e=>{if(e.alive)e.x+=dir*1.5;});
+        // enemies fire
+        if(Math.random()<0.03) {
+            let shooters = enemies.filter(e=>e.alive);
+            if(shooters.length) {
+                let e = shooters[Math.floor(Math.random()*shooters.length)];
+                enemyBullets.push({x:e.x+e.w/2,y:e.y+e.h});
+            }
+        }
+        enemyBullets.forEach(b=>b.y+=5);
+        enemyBullets = enemyBullets.filter(b=>b.y<400);
+    }
+    function collisions() {
+        // bullets vs enemies
+        bullets.forEach(b=>{
+            enemies.forEach(e=>{
+                if(e.alive&&b.x>e.x&&b.x<e.x+e.w&&b.y>e.y&&b.y<e.y+e.h) {
+                    e.alive=false; b.y=-100; score+=20;
+                }
+            });
+        });
+        // enemy bullets vs player
+        enemyBullets.forEach(b=>{
+            if(player.alive && b.x>player.x && b.x<player.x+player.w && b.y>player.y && b.y<player.y+player.h) {
+                player.alive=false;
+                running=false;
+                clearInterval(interval);
+                setTimeout(()=>alert("Game Over! Score: "+score),100);
+            }
+        });
+        // enemies reach bottom
+        if(enemies.some(e=>e.y>360&&e.alive)) {
+            running=false; clearInterval(interval);
+            setTimeout(()=>alert("Game Over! Score: "+score),100);
+        }
+        // win
+        if(enemies.every(e=>!e.alive)) {
+            running=false; clearInterval(interval);
+            setTimeout(()=>alert("You Win! Score: "+score),100);
+        }
+    }
+    function gameLoop() {
+        move();
+        collisions();
+        draw();
+    }
+    document.addEventListener("keydown",e=>{
+        if(e.key==="ArrowLeft") left=true;
+        if(e.key==="ArrowRight") right=true;
+        if(e.key===" "||e.key==="Spacebar") {
+            if(bullets.length<1&&player.alive) bullets.push({x:player.x+player.w/2,y:player.y});
+        }
+    });
+    document.addEventListener("keyup",e=>{
+        if(e.key==="ArrowLeft") left=false;
+        if(e.key==="ArrowRight") right=false;
+        if(e.key===" "||e.key==="Spacebar") space=false;
+    });
+    function startGalaga() {
+        resetGalaga();
+        clearInterval(interval);
+        interval = setInterval(gameLoop, 1000/60);
+    }
+    startGalaga();
+    </script>
+</body>
+</html>

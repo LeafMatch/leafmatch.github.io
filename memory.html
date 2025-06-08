@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Memory Match Game</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #memory-board { display: grid; grid-template-columns: repeat(4, 60px); gap: 10px; margin: 30px auto;}
+        .memory-card { width: 60px; height: 60px; font-size: 2em; background: #bbb; cursor: pointer; display: flex; align-items: center; justify-content: center;}
+        .flipped, .matched { background: #7fffd4;}
+    </style>
+</head>
+<body>
+    <h1>Memory Match</h1>
+    <div id="memory-board"></div>
+    <p id="memory-status"></p>
+    <button onclick="initMemory()">Restart</button>
+    <p><a href="index.html">Back to Home</a></p>
+    <script>
+        const symbols = ['🍎','🍌','🍒','🍇','🍉','🍋','🍑','🍓'];
+        let cards, first, second, lock, matchedCount;
+
+        function shuffle(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function initMemory() {
+            cards = shuffle([...symbols, ...symbols]);
+            matchedCount = 0;
+            first = second = null;
+            lock = false;
+            renderMemory();
+            document.getElementById('memory-status').textContent = '';
+        }
+
+        function renderMemory() {
+            const board = document.getElementById('memory-board');
+            board.innerHTML = "";
+            cards.forEach((sym, idx) => {
+                const div = document.createElement("div");
+                div.className = "memory-card";
+                if (div.classList.contains("matched")) div.classList.add("matched");
+                div.onclick = () => flipCard(idx, div);
+                if (cards[idx] === null) {
+                    div.classList.add("matched");
+                } else if (first === idx || second === idx) {
+                    div.classList.add("flipped");
+                    div.textContent = sym;
+                } else {
+                    div.textContent = '';
+                }
+                board.appendChild(div);
+            });
+        }
+
+        function flipCard(idx, div) {
+            if (lock || cards[idx] === null || idx === first || idx === second) return;
+            if (first === null) {
+                first = idx;
+            } else if (second === null) {
+                second = idx;
+                lock = true;
+                setTimeout(checkMatch, 800);
+            }
+            renderMemory();
+        }
+
+        function checkMatch() {
+            if (cards[first] === cards[second]) {
+                cards[first] = cards[second] = null;
+                matchedCount += 2;
+            }
+            first = second = null;
+            lock = false;
+            renderMemory();
+            if (matchedCount === cards.length) {
+                document.getElementById('memory-status').textContent = "Congratulations! You've matched all pairs!";
+            }
+        }
+
+        initMemory();
+    </script>
+</body>
+</html>

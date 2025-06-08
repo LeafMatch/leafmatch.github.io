@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DOOM-like Mini Shooter</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #doom-canvas { background: #000; display: block; margin: 30px auto; }
+        #controls { margin: 10px auto; }
+    </style>
+</head>
+<body>
+    <h1>DOOM-like Mini Shooter</h1>
+    <canvas id="doom-canvas" width="320" height="200"></canvas>
+    <div id="controls">
+        <p>Move: W A S D &nbsp; | &nbsp; Turn: Arrow Left/Right &nbsp; | &nbsp; Shoot: Space</p>
+    </div>
+    <button onclick="startDoomlike()">Restart</button>
+    <p><a href="index.html">Back to Home</a></p>
+    <script>
+    // Simple raycasting engine: 2D map, 3D view
+    const map = [
+        "##########",
+        "#........#",
+        "#..##....#",
+        "#........#",
+        "#...#....#",
+        "#........#",
+        "##########"
+    ];
+    const WIDTH = 320, HEIGHT = 200, FOV = Math.PI/3, HALF_FOV = FOV/2, NUM_RAYS = WIDTH;
+    const MAP_W = map[0].length, MAP_H = map.length, BLOCK = 32;
+    const canvas = document.getElementById('doom-canvas');
+    const ctx = canvas.getContext('2d');
+    let px, py, pa, keys={}, interval;
+    function castRays() {
+        for(let col=0;col<NUM_RAYS;col++) {
+            let angle = pa - HALF_FOV + FOV*col/NUM_RAYS;
+            let sin = Math.sin(angle), cos = Math.cos(angle);
+            for(let t=0.01;t<20;t+=0.02) {
+                let rx=px+t*cos, ry=py+t*sin;
+                if(map[Math.floor(ry)][Math.floor(rx)]==="#") {
+                    let dist=t*Math.cos(angle-pa);
+                    let wallH = Math.min(HEIGHT*1.2/(dist+0.1), HEIGHT);
+                    ctx.fillStyle = `rgb(${100+155/(1+dist/3)},${100+80/(1+dist/4)},${100+60/(1+dist/7)})`;
+                    ctx.fillRect(col,HEIGHT/2-wallH/2,1,wallH);
+                    break;
+                }
+            }
+        }
+    }
+    function drawMiniMap() {
+        for(let y=0;y<MAP_H;y++)
+            for(let x=0;x<MAP_W;x++) {
+                ctx.fillStyle = map[y][x]==="#"?"#444":"#bbb";
+                ctx.fillRect(x*6,y*6,6,6);
+            }
+        ctx.fillStyle="red";
+        ctx.fillRect(px*6-2,py*6-2,4,4);
+    }
+    function gameLoop() {
+        ctx.clearRect(0,0,WIDTH,HEIGHT);
+        castRays();
+        drawMiniMap();
+        let spd = 0.08;
+        if(keys["KeyW"]) {
+            let nx=px+Math.cos(pa)*spd, ny=py+Math.sin(pa)*spd;
+            if(map[Math.floor(ny)][Math.floor(nx)]!="#") { px=nx; py=ny; }
+        }
+        if(keys["KeyS"]) {
+            let nx=px-Math.cos(pa)*spd, ny=py-Math.sin(pa)*spd;
+            if(map[Math.floor(ny)][Math.floor(nx)]!="#") { px=nx; py=ny; }
+        }
+        if(keys["KeyA"]) {
+            let nx=px+Math.sin(pa)*spd, ny=py-Math.cos(pa)*spd;
+            if(map[Math.floor(ny)][Math.floor(nx)]!="#") { px=nx; py=ny; }
+        }
+        if(keys["KeyD"]) {
+            let nx=px-Math.sin(pa)*spd, ny=py+Math.cos(pa)*spd;
+            if(map[Math.floor(ny)][Math.floor(nx)]!="#") { px=nx; py=ny; }
+        }
+    }
+    document.addEventListener("keydown",e=>{
+        keys[e.code]=true;
+        if(e.code==="ArrowLeft") pa-=0.08;
+        if(e.code==="ArrowRight") pa+=0.08;
+    });
+    document.addEventListener("keyup",e=>{ keys[e.code]=false; });
+    function startDoomlike() {
+        px=2; py=2; pa=0;
+        clearInterval(interval);
+        interval = setInterval(gameLoop, 30);
+    }
+    startDoomlike();
+    </script>
+</body>
+</html>

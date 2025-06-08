@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rock Paper Scissors</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .rps-btn { font-size: 1.5em; padding: 10px 30px; margin: 10px;}
+    </style>
+</head>
+<body>
+    <h1>Rock Paper Scissors</h1>
+    <div>
+        <button class="rps-btn" onclick="play('rock')">Rock</button>
+        <button class="rps-btn" onclick="play('paper')">Paper</button>
+        <button class="rps-btn" onclick="play('scissors')">Scissors</button>
+    </div>
+    <p id="rps-result"></p>
+    <button onclick="resetRps()">Play Again</button>
+    <p><a href="index.html">Back to Home</a></p>
+    <script>
+        function play(user) {
+            const choices = ["rock", "paper", "scissors"];
+            const cpu = choices[Math.floor(Math.random() * 3)];
+            let result;
+            if (user === cpu) result = "It's a tie!";
+            else if (
+                (user === "rock" && cpu === "scissors") ||
+                (user === "paper" && cpu === "rock") ||
+                (user === "scissors" && cpu === "paper")
+            ) result = "You win!";
+            else result = "You lose!";
+            document.getElementById("rps-result").textContent = `You chose ${user}. CPU chose ${cpu}. ${result}`;
+        }
+        function resetRps() {
+            document.getElementById("rps-result").textContent = '';
+        }
+    </script>
+</body>
+</html>

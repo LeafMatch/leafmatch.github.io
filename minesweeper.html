@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Minesweeper</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #minesweeper-canvas { background: #ddd; display: block; margin: 30px auto; border:1px solid #666; }
+    </style>
+</head>
+<body>
+    <h1>Minesweeper</h1>
+    <canvas id="minesweeper-canvas" width="240" height="240"></canvas>
+    <p>Left Click: Reveal &nbsp;|&nbsp; Right Click: Flag</p>
+    <button onclick="startMinesweeper()">Restart</button>
+    <p><a href="index.html">Back to Home</a></p>
+    <script>
+    const canvas = document.getElementById("minesweeper-canvas");
+    const ctx = canvas.getContext("2d");
+    const SZ = 10, SQ=24, MINECOUNT=12;
+    let field, revealed, flagged, lost, won;
+    function placeMines() {
+        field = Array.from({length:SZ},()=>Array(SZ).fill(0));
+        let placed=0;
+        while(placed<MINECOUNT) {
+            let x=Math.floor(Math.random()*SZ), y=Math.floor(Math.random()*SZ);
+            if(field[y][x]!==9) {
+                field[y][x]=9; placed++;
+            }
+        }
+        for(let y=0;y<SZ;y++) for(let x=0;x<SZ;x++) {
+            if(field[y][x]!==9) {
+                let count=0;
+                for(let dy=-1;dy<=1;dy++)
+                    for(let dx=-1;dx<=1;dx++)
+                        if(field[y+dy]&&field[y+dy][x+dx]==9) count++;
+                field[y][x]=count;
+            }
+        }
+    }
+    function draw() {
+        ctx.clearRect(0,0,240,240);
+        for(let y=0;y<SZ;y++) for(let x=0;x<SZ;x++) {
+            ctx.strokeStyle="#888"; ctx.strokeRect(x*SQ, y*SQ, SQ, SQ);
+            if(revealed[y][x]) {
+                ctx.fillStyle="#bbb";ctx.fillRect(x*SQ,y*SQ,SQ,SQ);
+                if(field[y][x]==9) {
+                    ctx.fillStyle="#f00";
+                    ctx.beginPath();ctx.arc(x*SQ+12,y*SQ+12,8,0,2*Math.PI);ctx.fill();
+                } else if(field[y][x]>0) {
+                    ctx.fillStyle="#000";ctx.font="14px Arial";
+                    ctx.fillText(field[y][x],x*SQ+8,y*SQ+18);
+                }
+            } else if(flagged[y][x]) {
+                ctx.fillStyle="#0c0";ctx.fillRect(x*SQ+6,y*SQ+6,12,12);
+            } else {
+                ctx.fillStyle="#888";ctx.fillRect(x*SQ,y*SQ,SQ,SQ);
+            }
+        }
+    }
+    function reveal(x,y) {
+        if(x<0||x>=SZ||y<0||y>=SZ||revealed[y][x]||flagged[y][x]) return;
+        revealed[y][x]=1;
+        if(field[y][x]==9) { lost=true; revealAll(); draw(); setTimeout(()=>alert("Game Over!"),100); }
+        else if(field[y][x]==0) {
+            for(let dy=-1;dy<=1;dy++) for(let dx=-1;dx<=1;dx++)
+                if(dx||dy) reveal(x+dx,y+dy);
+        }
+    }
+    function revealAll() {
+        for(let y=0;y<SZ;y++) for(let x=0;x<SZ;x++) revealed[y][x]=1;
+    }
+    function checkWin() {
+        for(let y=0;y<SZ;y++) for(let x=0;x<SZ;x++)
+            if(field[y][x]!=9&&!revealed[y][x]) return false;
+        won=true; revealAll(); setTimeout(()=>alert("You Win!"),100);
+        return true;
+    }
+    canvas.addEventListener("mousedown",e=>{
+        if(lost||won) return;
+        let rect = canvas.getBoundingClientRect();
+        let x = Math.floor((e.clientX-rect.left)/SQ), y = Math.floor((e.clientY-rect.top)/SQ);
+        if(e.button==2) {flagged[y][x]=!flagged[y][x];} else {reveal(x,y);}
+        draw(); checkWin();
+    });
+    canvas.oncontextmenu = ()=>false;
+    function startMinesweeper() {
+        placeMines();
+        revealed = Array.from({length:SZ},()=>Array(SZ).fill(0));
+        flagged = Array.from({length:SZ},()=>Array(SZ).fill(0));
+        lost=won=false;
+        draw();
+    }
+    startMinesweeper();
+    </script>
+</body>
+</html>

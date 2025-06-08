@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Breakout</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #breakout-canvas { background: #111; display: block; margin: 30px auto; }
+    </style>
+</head>
+<body>
+    <h1>Breakout</h1>
+    <canvas id="breakout-canvas" width="480" height="320"></canvas>
+    <p>Move: Left/Right Arrows</p>
+    <button onclick="startBreakout()">Restart</button>
+    <p><a href="index.html">Back to Home</a></p>
+    <script>
+        const canvas = document.getElementById("breakout-canvas");
+        const ctx = canvas.getContext("2d");
+        let ball, paddle, bricks, score, lives, interval, rightPressed, leftPressed, running;
+
+        function resetGame() {
+            ball = {x:240, y:160, dx:2, dy:-2, r:8};
+            paddle = {w:75, h:10, x:202, y:310};
+            bricks = [];
+            for(let c=0;c<5;c++) for(let r=0;r<4;r++)
+                bricks.push({x: c*96+10, y: r*24+30, w:80, h:16, alive:true});
+            score = 0; lives = 3;
+        }
+        function draw() {
+            ctx.clearRect(0,0,480,320);
+            // Bricks
+            bricks.forEach(b=>{
+                if(b.alive) {
+                    ctx.fillStyle="#0ff";
+                    ctx.fillRect(b.x,b.y,b.w,b.h);
+                }
+            });
+            // Ball
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+            ctx.fillStyle="#fff";
+            ctx.fill();
+            ctx.closePath();
+            // Paddle
+            ctx.fillStyle="#0f0";
+            ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
+            // Score/lives
+            ctx.font = "16px Arial";
+            ctx.fillStyle = "#fff";
+            ctx.fillText("Score: "+score, 8, 20);
+            ctx.fillText("Lives: "+lives, 400, 20);
+        }
+        function update() {
+            // Move ball
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+            // Wall collision
+            if(ball.x < ball.r || ball.x > 480-ball.r) ball.dx *= -1;
+            if(ball.y < ball.r) ball.dy *= -1;
+            // Paddle collision
+            if(ball.y+ball.r > paddle.y && ball.x > paddle.x && ball.x < paddle.x+paddle.w)
+                ball.dy *= -1;
+            // Brick collision
+            bricks.forEach(b=>{
+                if(b.alive &&
+                   ball.x > b.x && ball.x < b.x+b.w &&
+                   ball.y-ball.r < b.y+b.h && ball.y+ball.r > b.y) {
+                    b.alive = false;
+                    ball.dy *= -1;
+                    score += 10;
+                }
+            });
+            // Bottom collision
+            if(ball.y > 320-ball.r) {
+                lives--;
+                if(lives==0) {
+                    clearInterval(interval);
+                    setTimeout(()=>alert("Game Over! Score: "+score), 100);
+                } else {
+                    ball.x=240; ball.y=160; ball.dx=2; ball.dy=-2;
+                    paddle.x=202;
+                }
+            }
+            // Move paddle
+            if(rightPressed && paddle.x < 480-paddle.w) paddle.x += 5;
+            if(leftPressed && paddle.x > 0) paddle.x -= 5;
+            // Win
+            if(bricks.every(b=>!b.alive)) {
+                clearInterval(interval);
+                setTimeout(()=>alert("You win! Score: "+score), 100);
+            }
+            draw();
+        }
+        document.addEventListener("keydown", e=>{
+            if(e.key==="ArrowRight") rightPressed = true;
+            if(e.key==="ArrowLeft") leftPressed = true;
+        });
+        document.addEventListener("keyup", e=>{
+            if(e.key==="ArrowRight") rightPressed = false;
+            if(e.key==="ArrowLeft") leftPressed = false;
+        });
+        function startBreakout() {
+            resetGame();
+            clearInterval(interval);
+            interval = setInterval(update, 1000/60);
+        }
+        startBreakout();
+    </script>
+</body>
+</html>

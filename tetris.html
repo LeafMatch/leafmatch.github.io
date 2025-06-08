@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tetris</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #tetris { background: #222; margin: 30px auto; display: block; }
+        #tetris-score { font-size: 1.2em; }
+    </style>
+</head>
+<body>
+    <h1>Tetris</h1>
+    <canvas id="tetris" width="200" height="400"></canvas>
+    <p id="tetris-score">Score: 0</p>
+    <button onclick="startTetris()">Restart</button>
+    <p><a href="index.html">Back to Home</a></p>
+    <script>
+        const canvas = document.getElementById("tetris");
+        const ctx = canvas.getContext("2d");
+        const ROW = 20, COL = 10, SQ = 20;
+        let board, score, request, current, next, gameOver;
+
+        const COLORS = ['#000', '#f00', '#0f0', '#00f', '#ff0', '#0ff', '#f0f', '#fff'];
+        const SHAPES = [
+            [],
+            [[1,1,1,1]], // I
+            [[2,2,0],[0,2,2]], // Z
+            [[0,3,3],[3,3,0]], // S
+            [[4,4,4],[0,4,0]], // T
+            [[5,5,5],[5,0,0]], // L
+            [[6,6,6],[0,0,6]], // J
+            [[7,7],[7,7]] // O
+        ];
+
+        function drawSquare(x, y, c) {
+            ctx.fillStyle = COLORS[c];
+            ctx.fillRect(x*SQ, y*SQ, SQ, SQ);
+            ctx.strokeStyle = "#333";
+            ctx.strokeRect(x*SQ, y*SQ, SQ, SQ);
+        }
+
+        function drawBoard() {
+            for(let r=0;r<ROW;r++)
+                for(let c=0;c<COL;c++)
+                    drawSquare(c,r,board[r][c]);
+        }
+
+        function randomPiece() {
+            const type = Math.floor(1+Math.random()*7);
+            return {
+                type: type,
+                shape: JSON.parse(JSON.stringify(SHAPES[type])),
+                x: 3,
+                y: -2
+            };
+        }
+
+        function collision(p, dx, dy, shape) {
+            for(let r=0;r<shape.length;r++)
+                for(let c=0;c<shape[r].length;c++)
+                    if(shape[r][c])
+                        if(
+                            p.x+c+dx<0 || p.x+c+dx>=COL ||
+                            p.y+r+dy>=ROW ||
+                            (p.y+r+dy>=0&&board[p.y+r+dy][p.x+c+dx])
+                        ) return true;
+            return false;
+        }
+
+        function merge(p) {
+            for(let r=0;r<p.shape.length;r++)
+                for(let c=0;c<p.shape[r].length;c++)
+                    if(p.shape[r][c] && p.y+r>=0)
+                        board[p.y+r][p.x+c]=p.type;
+        }
+
+        function rotate(shape) {
+            return shape[0].map((_,i)=>shape.map(row=>row[i])).reverse();
+        }
+
+        function drop() {
+            if(collision(current,0,1,current.shape)) {
+                merge(current);
+                removeLines();
+                current = next;
+                next = randomPiece();
+                if(collision(current,0,0,current.shape)) {
+                    gameOver = true;
+                    cancelAnimationFrame(request);
+                    alert("Game Over! Score: "+score);
+                }
+            } else {
+                current.y++;
+            }
+        }
+
+        function removeLines() {
+            for(let r=ROW-1;r>=0;r--)
+                if(board[r].every(v=>v)) {
+                    board.splice(r,1);
+                    board.unshift(Array(COL).fill(0));
+                    score+=100;
+                    document.getElementById("tetris-score").textContent = "Score: "+score;
+                    r++;
+                }
+        }
+
+        function draw() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            drawBoard();
+            for(let r=0;r<current.shape.length;r++)
+                for(let c=0;c<current.shape[r].length;c++)
+                    if(current.shape[r][c] && current.y+r>=0)
+                        drawSquare(current.x+c,current.y+r,current.type);
+        }
+
+        function update() {
+            if(!gameOver) {
+                drop();
+                draw();
+                request = setTimeout(update, 400);
+            }
+        }
+
+        document.addEventListener("keydown", (e)=>{
+            if(gameOver) return;
+            if(e.key==="ArrowLeft" && !collision(current,-1,0,current.shape)) current.x--;
+            if(e.key==="ArrowRight" && !collision(current,1,0,current.shape)) current.x++;
+            if(e.key==="ArrowDown") drop();
+            if(e.key==="ArrowUp") {
+                let newShape = rotate(current.shape);
+                if(!collision(current,0,0,newShape)) current.shape=newShape;
+            }
+            draw();
+        });
+
+        function startTetris() {
+            board = Array.from({length: ROW},()=>Array(COL).fill(0));
+            score = 0;
+            document.getElementById("tetris-score").textContent = "Score: 0";
+            current = randomPiece();
+            next = randomPiece();
+            gameOver = false;
+            clearTimeout(request);
+            update();
+        }
+
+        startTetris();
+    </script>
+</body>
+</html>
