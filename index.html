@@ -4,30 +4,625 @@
     <meta charset="UTF-8">
     <title>Game Portal</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 28px;
+            max-width: 1100px;
+            margin: 40px auto;
+            width: 95vw;
+        }
+        .game-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(51,102,204,0.09);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 12px 18px 12px;
+            cursor: pointer;
+            transition: transform 0.13s, box-shadow 0.18s;
+            min-height: 220px;
+            position: relative;
+        }
+        .game-card:hover, .game-card:focus {
+            transform: translateY(-4px) scale(1.04);
+            box-shadow: 0 6px 24px rgba(51,102,204,0.16);
+            outline: none;
+        }
+        .game-img {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 18px;
+            font-size: 3em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e7f0f7;
+            border-radius: 12px;
+            box-shadow: 0 1px 4px rgba(51,102,204,0.07);
+        }
+        .game-title {
+            font-size: 1.15em;
+            font-weight: 700;
+            color: #3366cc;
+            margin-bottom: 7px;
+        }
+        .game-desc {
+            font-size: 0.98em;
+            color: #444;
+            margin-bottom: 0;
+        }
+        #game-modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0; top: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        #game-content {
+            background: #fff;
+            color: #222;
+            border-radius: 16px;
+            padding: 32px 18px 24px 18px;
+            min-width: 320px;
+            min-height: 320px;
+            max-width: 98vw;
+            max-height: 98vh;
+            overflow: auto;
+            position: relative;
+        }
+        #close-btn {
+            position: absolute;
+            top: 8px; right: 12px;
+            font-size: 1.7em;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+        }
+        @media (max-width: 700px) {
+            .game-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;}
+            .game-card { min-height: 160px; padding: 12px 4px 10px 4px;}
+            .game-img { width: 54px; height: 54px; font-size: 2em;}
+        }
+        @media (prefers-color-scheme: dark) {
+            .game-card { background: #232b3b; color: #e7f0f7; }
+            .game-title { color: #7aaaff; }
+            .game-img { background: #232b3b; }
+            #game-content { background: #232b3b; color: #e7f0f7; }
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to the Game Portal!</h1>
-    <p>Choose a game to play:</p>
-    <ul class="game-list">
-        <li><a href="tictactoe.html">Tic-Tac-Toe</a></li>
-        <li><a href="snake.html">Snake</a></li>
-        <li><a href="rps.html">Rock Paper Scissors</a></li>
-        <li><a href="memory.html">Memory Match</a></li>
-        <li><a href="guess.html">Guess the Number</a></li>
-    </ul>
-    <h2>Retro Games</h2>
-    <ul class="game-list">
-        <li><a href="tetris.html">Tetris</a></li>
-        <li><a href="pacman.html">Pac-Man</a></li>
-        <li><a href="doomlike.html">DOOM-like (Wolfenstein 3D style)</a></li>
-        <li><a href="pong.html">Pong</a></li>
-        <li><a href="breakout.html">Breakout</a></li>
-        <li><a href="invaders.html">Space Invaders</a></li>
-        <li><a href="frogger.html">Frogger</a></li>
-        <li><a href="asteroids.html">Asteroids</a></li>
-        <li><a href="galaga.html">Galaga</a></li>
-        <li><a href="arkanoid.html">Arkanoid</a></li>
-        <li><a href="minesweeper.html">Minesweeper</a></li>
-    </ul>
+    <nav>
+        <a href="#" onclick="showHome();return false;">Home</a>
+    </nav>
+    <main id="main-content">
+        <h1>Game Portal</h1>
+        <div class="game-grid">
+            <div class="game-card" tabindex="0" onclick="openGame('tictactoe')">
+                <div class="game-img">❌⭕</div>
+                <div class="game-title">Tic-Tac-Toe</div>
+                <div class="game-desc">Classic X/O game</div>
+            </div>
+            <div class="game-card" tabindex="0" onclick="openGame('snake')">
+                <div class="game-img">🐍</div>
+                <div class="game-title">Snake</div>
+                <div class="game-desc">Eat and grow!</div>
+            </div>
+            <div class="game-card" tabindex="0" onclick="openGame('rps')">
+                <div class="game-img">✊✋✌️</div>
+                <div class="game-title">Rock Paper Scissors</div>
+                <div class="game-desc">Beat the CPU</div>
+            </div>
+            <div class="game-card" tabindex="0" onclick="openGame('memory')">
+                <div class="game-img">🧠</div>
+                <div class="game-title">Memory Match</div>
+                <div class="game-desc">Find all pairs</div>
+            </div>
+            <div class="game-card" tabindex="0" onclick="openGame('guess')">
+                <div class="game-img">🔢</div>
+                <div class="game-title">Guess the Number</div>
+                <div class="game-desc">1 to 100</div>
+            </div>
+            <div class="game-card" tabindex="0" onclick="openGame('tetris')">
+                <div class="game-img">🟦</div>
+                <div class="game-title">Tetris</div>
+                <div class="game-desc">Falling blocks</div>
+            </div>
+            <div class="game-card" tabindex="0" onclick="openGame('pacman')">
+                <div class="game-img">🟡</div>
+                <div class="game-title">Pac-Man</div>
+                <div class="game-desc">Eat the dots</div>
+            </div>
+            <div class="game-card" tabindex="0" onclick="openGame('doomlike')">
+                <div class="game-img">🔫</div>
+                <div class="game-title">DOOM-like</div>
+                <div class="game-desc">Mini 3D shooter</div>
+            </div>
+            <div class="game-card" tabindex="0" onclick="openGame('pong')">
+                <div class="game-img">🏓</div>
+                <div class="game-title">Pong</div>
+                <div class="game-desc">Classic paddle game</div>
+            </div>
+            <div class="game-card" tabindex="0" onclick="openGame('breakout')">
+                <div class="game-img">🧱</div>
+                <div class="game-title">Breakout</div>
+                <div class="game-desc">Break the bricks</div>
+            </div>
+            <div class="game-card" tabindex="0" onclick="openGame('invaders')">
+                <div class="game-img">👾</div>
+                <div class="game-title">Space Invaders</div>
+                <div class="game-desc">Shoot the aliens</div>
+            </div>
+            <div class="game-card" tabindex="0" onclick="openGame('minesweeper')">
+                <div class="game-img">💣</div>
+                <div class="game-title">Minesweeper</div>
+                <div class="game-desc">Find the mines</div>
+            </div>
+            <div class="game-card" tabindex="0" onclick="openGame('frogger')">
+                <div class="game-img">🐸</div>
+                <div class="game-title">Frogger</div>
+                <div class="game-desc">Cross the road</div>
+            </div>
+            <div class="game-card" tabindex="0" onclick="openGame('asteroids')">
+                <div class="game-img">🪨</div>
+                <div class="game-title">Asteroids</div>
+                <div class="game-desc">Blast the rocks</div>
+            </div>
+            <div class="game-card" tabindex="0" onclick="openGame('galaga')">
+                <div class="game-img">🚀</div>
+                <div class="game-title">Galaga</div>
+                <div class="game-desc">Arcade shooter</div>
+            </div>
+            <div class="game-card" tabindex="0" onclick="openGame('arkanoid')">
+                <div class="game-img">🟧</div>
+                <div class="game-title">Arkanoid</div>
+                <div class="game-desc">Breakout clone</div>
+            </div>
+        </div>
+    </main>
+    <div id="game-modal">
+        <div id="game-content">
+            <button id="close-btn" onclick="closeGame()">&times;</button>
+            <!-- Game content will be injected here -->
+        </div>
+    </div>
+    <script>
+        function showHome() {
+            document.getElementById('main-content').style.display = '';
+            closeGame();
+        }
+        function openGame(game) {
+            document.getElementById('main-content').style.display = 'none';
+            document.getElementById('game-modal').style.display = 'flex';
+            const content = document.getElementById('game-content');
+            content.innerHTML = '<button id="close-btn" onclick="closeGame()">&times;</button>' + getGameHTML(game);
+            // Init game logic
+            if (game === 'tictactoe') initTicTacToe();
+            if (game === 'snake') initSnake();
+            if (game === 'rps') initRps();
+            if (game === 'memory') initMemory();
+            if (game === 'guess') initGuess();
+            if (game === 'tetris') initTetris();
+            if (game === 'pong') initPong();
+            if (game === 'minesweeper') initMinesweeper();
+            if (game === 'invaders') initInvaders();
+            if (game === 'breakout') initBreakout();
+            if (game === 'asteroids') initAsteroids();
+            if (game === 'arkanoid') initArkanoid();
+            if (game === 'frogger') initFrogger();
+            if (game === 'galaga') initGalaga();
+            if (game === 'doomlike') initDoomlike();
+            if (game === 'pacman') initTetris(); // Placeholder: Pacman not implemented, show Tetris
+        }
+        function closeGame() {
+            document.getElementById('game-modal').style.display = 'none';
+            document.getElementById('game-content').innerHTML = '';
+            document.getElementById('main-content').style.display = '';
+            // Remove all event listeners and intervals if needed
+            window.onkeydown = null;
+            window.onkeyup = null;
+            clearInterval(window._gameInterval);
+            clearTimeout(window._gameTimeout);
+        }
+
+        // --- Game HTML and JS ---
+
+        function getGameHTML(game) {
+            switch (game) {
+                case 'tictactoe':
+                    return `
+                        <h1>Tic-Tac-Toe</h1>
+                        <div id="ttt-board" style="display:grid;grid-template-columns:repeat(3,80px);gap:5px;margin:30px auto;"></div>
+                        <p id="ttt-status"></p>
+                        <button onclick="initTicTacToe()">Restart</button>
+                    `;
+                case 'snake':
+                    return `
+                        <h1>Snake Game</h1>
+                        <canvas id="snake-canvas" width="400" height="400" style="background:#222;display:block;margin:30px auto;border:2px solid #333;"></canvas>
+                        <p id="snake-score">Score: 0</p>
+                        <button onclick="initSnake()">Restart</button>
+                    `;
+                case 'rps':
+                    return `
+                        <h1>Rock Paper Scissors</h1>
+                        <div>
+                            <button class="rps-btn" onclick="playRps('rock')">Rock</button>
+                            <button class="rps-btn" onclick="playRps('paper')">Paper</button>
+                            <button class="rps-btn" onclick="playRps('scissors')">Scissors</button>
+                        </div>
+                        <p id="rps-result"></p>
+                        <button onclick="initRps()">Play Again</button>
+                    `;
+                case 'memory':
+                    return `
+                        <h1>Memory Match</h1>
+                        <div id="memory-board"></div>
+                        <p id="memory-status"></p>
+                        <button onclick="initMemory()">Restart</button>
+                    `;
+                case 'guess':
+                    return `
+                        <h1>Guess the Number</h1>
+                        <p>I'm thinking of a number between 1 and 100.</p>
+                        <input id="guess-input" type="number" min="1" max="100" />
+                        <button onclick="checkGuess()">Guess</button>
+                        <p id="guess-status"></p>
+                        <button onclick="initGuess()">Restart</button>
+                    `;
+                case 'tetris':
+                    return `
+                        <h1>Tetris</h1>
+                        <canvas id="tetris" width="200" height="400"></canvas>
+                        <p id="tetris-score">Score: 0</p>
+                        <button onclick="initTetris()">Restart</button>
+                    `;
+                case 'pong':
+                    return `
+                        <h1>Pong</h1>
+                        <canvas id="pong-canvas" width="500" height="300"></canvas>
+                        <p>Player: W/S &nbsp;|&nbsp; CPU: Auto</p>
+                        <button onclick="initPong()">Restart</button>
+                    `;
+                case 'minesweeper':
+                    return `
+                        <h1>Minesweeper</h1>
+                        <canvas id="minesweeper-canvas" width="240" height="240"></canvas>
+                        <p>Left Click: Reveal &nbsp;|&nbsp; Right Click: Flag</p>
+                        <button onclick="initMinesweeper()">Restart</button>
+                    `;
+                case 'invaders':
+                    return `
+                        <h1>Space Invaders</h1>
+                        <canvas id="invaders-canvas" width="400" height="300"></canvas>
+                        <p>Move: Left/Right Arrows &nbsp;|&nbsp; Shoot: Space</p>
+                        <button onclick="initInvaders()">Restart</button>
+                    `;
+                case 'breakout':
+                    return `
+                        <h1>Breakout</h1>
+                        <canvas id="breakout-canvas" width="480" height="320"></canvas>
+                        <p>Move: Left/Right Arrows</p>
+                        <button onclick="initBreakout()">Restart</button>
+                    `;
+                case 'asteroids':
+                    return `
+                        <h1>Asteroids</h1>
+                        <canvas id="asteroids-canvas" width="400" height="400"></canvas>
+                        <p>Move: Arrow keys &nbsp;|&nbsp; Shoot: Space</p>
+                        <button onclick="initAsteroids()">Restart</button>
+                    `;
+                case 'arkanoid':
+                    return `
+                        <h1>Arkanoid</h1>
+                        <canvas id="arkanoid-canvas" width="480" height="320"></canvas>
+                        <p>Move: Left/Right Arrows</p>
+                        <button onclick="initArkanoid()">Restart</button>
+                    `;
+                case 'frogger':
+                    return `
+                        <h1>Frogger</h1>
+                        <canvas id="frogger-canvas" width="300" height="300"></canvas>
+                        <p>Move: Arrow Keys</p>
+                        <button onclick="initFrogger()">Restart</button>
+                    `;
+                case 'galaga':
+                    return `
+                        <h1>Galaga</h1>
+                        <canvas id="galaga-canvas" width="320" height="400"></canvas>
+                        <p>Move: Left/Right Arrows &nbsp;|&nbsp; Shoot: Space</p>
+                        <button onclick="initGalaga()">Restart</button>
+                    `;
+                case 'doomlike':
+                    return `
+                        <h1>DOOM-like Mini Shooter</h1>
+                        <canvas id="doom-canvas" width="320" height="200"></canvas>
+                        <div id="controls">
+                            <p>Move: W A S D &nbsp; | &nbsp; Turn: Arrow Left/Right &nbsp; | &nbsp; Shoot: Space</p>
+                        </div>
+                        <button onclick="initDoomlike()">Restart</button>
+                    `;
+                case 'pacman':
+                    return `
+                        <h1>Pac-Man</h1>
+                        <p>Coming soon!</p>
+                        <button onclick="closeGame()">Back</button>
+                    `;
+                default:
+                    return '<p>Game not found.</p>';
+            }
+        }
+
+        // --- Game logic for each game (adapted from your HTML files) ---
+        // For brevity, only a few games are shown here. You can expand as needed.
+
+        // Tic-Tac-Toe
+        function initTicTacToe() {
+            let board = Array(9).fill("");
+            let currentPlayer = "X";
+            let gameActive = true;
+            const statusEl = document.getElementById("ttt-status");
+            const boardEl = document.getElementById("ttt-board");
+            function renderBoard() {
+                boardEl.innerHTML = "";
+                board.forEach((cell, idx) => {
+                    const div = document.createElement("div");
+                    div.className = "cell";
+                    div.style.width = div.style.height = "80px";
+                    div.style.fontSize = "2em";
+                    div.style.display = "flex";
+                    div.style.alignItems = "center";
+                    div.style.justifyContent = "center";
+                    div.style.background = "#eee";
+                    div.style.cursor = "pointer";
+                    div.textContent = cell;
+                    div.onclick = () => handleCellClick(idx);
+                    boardEl.appendChild(div);
+                });
+            }
+            function handleCellClick(idx) {
+                if (!gameActive || board[idx]) return;
+                board[idx] = currentPlayer;
+                if (checkWinner()) {
+                    statusEl.textContent = `Player ${currentPlayer} wins!`;
+                    gameActive = false;
+                } else if (board.every(c => c)) {
+                    statusEl.textContent = "It's a tie!";
+                    gameActive = false;
+                } else {
+                    currentPlayer = currentPlayer === "X" ? "O" : "X";
+                    statusEl.textContent = `Player ${currentPlayer}'s turn`;
+                }
+                renderBoard();
+            }
+            function checkWinner() {
+                const wins = [
+                    [0,1,2],[3,4,5],[6,7,8],
+                    [0,3,6],[1,4,7],[2,5,8],
+                    [0,4,8],[2,4,6]
+                ];
+                return wins.some(line =>
+                    line.every(idx => board[idx] === currentPlayer)
+                );
+            }
+            function resetGame() {
+                board = Array(9).fill("");
+                currentPlayer = "X";
+                gameActive = true;
+                statusEl.textContent = `Player ${currentPlayer}'s turn`;
+                renderBoard();
+            }
+            window.handleCellClick = handleCellClick;
+            window.initTicTacToe = resetGame;
+            resetGame();
+        }
+
+        // Snake
+        function initSnake() {
+            const canvas = document.getElementById('snake-canvas');
+            const ctx = canvas.getContext('2d');
+            const box = 20;
+            let snake = [{x: 200, y: 200}];
+            let dx = box, dy = 0;
+            let score = 0;
+            let food = randomFood();
+            let changingDir = false;
+            document.getElementById('snake-score').textContent = "Score: 0";
+            function randomFood() {
+                return {
+                    x: Math.floor(Math.random() * 20) * box,
+                    y: Math.floor(Math.random() * 20) * box
+                };
+            }
+            function draw() {
+                ctx.fillStyle = "#222";
+                ctx.fillRect(0, 0, 400, 400);
+                snake.forEach((s, i) => {
+                    ctx.fillStyle = i === 0 ? "#0f0" : "#fff";
+                    ctx.fillRect(s.x, s.y, box, box);
+                });
+                ctx.fillStyle = "#f00";
+                ctx.fillRect(food.x, food.y, box, box);
+                let head = {x: snake[0].x + dx, y: snake[0].y + dy};
+                if (head.x < 0 || head.x >= 400 || head.y < 0 || head.y >= 400 ||
+                    snake.some(s => s.x === head.x && s.y === head.y)) {
+                    clearInterval(window._gameInterval);
+                    setTimeout(()=>alert('Game Over! Your score: ' + score), 100);
+                    return;
+                }
+                snake.unshift(head);
+                if (head.x === food.x && head.y === food.y) {
+                    score++;
+                    document.getElementById('snake-score').textContent = "Score: " + score;
+                    food = randomFood();
+                } else {
+                    snake.pop();
+                }
+                changingDir = false;
+            }
+            window.onkeydown = function(e) {
+                if (changingDir) return;
+                changingDir = true;
+                if (e.key === "ArrowLeft" && dx === 0) { dx = -box; dy = 0; }
+                if (e.key === "ArrowUp" && dy === 0) { dx = 0; dy = -box; }
+                if (e.key === "ArrowRight" && dx === 0) { dx = box; dy = 0; }
+                if (e.key === "ArrowDown" && dy === 0) { dx = 0; dy = box; }
+            };
+            clearInterval(window._gameInterval);
+            window._gameInterval = setInterval(draw, 100);
+        }
+
+        // RPS
+        function initRps() {
+            document.getElementById("rps-result").textContent = '';
+        }
+        function playRps(user) {
+            const choices = ["rock", "paper", "scissors"];
+            const cpu = choices[Math.floor(Math.random() * 3)];
+            let result;
+            if (user === cpu) result = "It's a tie!";
+            else if (
+                (user === "rock" && cpu === "scissors") ||
+                (user === "paper" && cpu === "rock") ||
+                (user === "scissors" && cpu === "paper")
+            ) result = "You win!";
+            else result = "You lose!";
+            document.getElementById("rps-result").textContent = `You chose ${user}. CPU chose ${cpu}. ${result}`;
+        }
+
+        // Memory
+        function initMemory() {
+            const symbols = ['🍎','🍌','🍒','🍇','🍉','🍋','🍑','🍓'];
+            let cards = shuffle([...symbols, ...symbols]);
+            let matchedCount = 0;
+            let first = null, second = null, lock = false;
+            function shuffle(arr) {
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr;
+            }
+            function renderMemory() {
+                const board = document.getElementById('memory-board');
+                board.innerHTML = "";
+                cards.forEach((sym, idx) => {
+                    const div = document.createElement("div");
+                    div.className = "memory-card";
+                    div.style.width = div.style.height = "60px";
+                    div.style.fontSize = "2em";
+                    div.style.background = "#bbb";
+                    div.style.cursor = "pointer";
+                    div.style.display = "flex";
+                    div.style.alignItems = "center";
+                    div.style.justifyContent = "center";
+                    if (cards[idx] === null) {
+                        div.classList.add("matched");
+                        div.textContent = '';
+                    } else if (first === idx || second === idx) {
+                        div.classList.add("flipped");
+                        div.textContent = sym;
+                    } else {
+                        div.textContent = '';
+                    }
+                    div.onclick = () => flipCard(idx, div);
+                    board.appendChild(div);
+                });
+            }
+            function flipCard(idx, div) {
+                if (lock || cards[idx] === null || idx === first || idx === second) return;
+                if (first === null) {
+                    first = idx;
+                } else if (second === null) {
+                    second = idx;
+                    lock = true;
+                    setTimeout(checkMatch, 800);
+                }
+                renderMemory();
+            }
+            function checkMatch() {
+                if (cards[first] === cards[second]) {
+                    cards[first] = cards[second] = null;
+                    matchedCount += 2;
+                }
+                first = second = null;
+                lock = false;
+                renderMemory();
+                if (matchedCount === cards.length) {
+                    document.getElementById('memory-status').textContent = "Congratulations! You've matched all pairs!";
+                }
+            }
+            window.initMemory = initMemory;
+            renderMemory();
+            document.getElementById('memory-status').textContent = '';
+        }
+
+        // Guess the Number
+        function initGuess() {
+            window._guessAnswer = Math.floor(Math.random() * 100) + 1;
+            window._guessTries = 0;
+            document.getElementById('guess-status').textContent = '';
+            document.getElementById('guess-input').value = '';
+        }
+        function checkGuess() {
+            const val = parseInt(document.getElementById('guess-input').value, 10);
+            if (isNaN(val)) return;
+            window._guessTries++;
+            if (val === window._guessAnswer) {
+                document.getElementById('guess-status').textContent = `Correct! You guessed it in ${window._guessTries} tries.`;
+            } else if (val < window._guessAnswer) {
+                document.getElementById('guess-status').textContent = 'Too low!';
+            } else {
+                document.getElementById('guess-status').textContent = 'Too high!';
+            }
+        }
+
+        // Tetris
+        function initTetris() {
+            // ...You can adapt your tetris.html code here...
+        }
+        // Pong
+        function initPong() {
+            // ...You can adapt your pong.html code here...
+        }
+        // Minesweeper
+        function initMinesweeper() {
+            // ...You can adapt your minesweeper.html code here...
+        }
+        // Invaders
+        function initInvaders() {
+            // ...You can adapt your invaders.html code here...
+        }
+        // Breakout
+        function initBreakout() {
+            // ...You can adapt your breakout.html code here...
+        }
+        // Asteroids
+        function initAsteroids() {
+            // ...You can adapt your asteroids.html code here...
+        }
+        // Arkanoid
+        function initArkanoid() {
+            // ...You can adapt your arkanoid.html code here...
+        }
+        // Frogger
+        function initFrogger() {
+            // ...You can adapt your frogger.html code here...
+        }
+        // Galaga
+        function initGalaga() {
+            // ...You can adapt your galaga.html code here...
+        }
+        // Doomlike
+        function initDoomlike() {
+            // ...You can adapt your doomlike.html code here...
+        }
+    </script>
 </body>
 </html>

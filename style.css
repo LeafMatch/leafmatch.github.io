@@ -1,50 +1,209 @@
+html {
+    font-size: 20px;
+    box-sizing: border-box;
+}
+
+*, *::before, *::after {
+    box-sizing: inherit;
+}
+
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', Arial, sans-serif;
     background: #e7f0f7;
     color: #222;
     text-align: center;
     margin: 0;
     padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+nav {
+    background: #3366cc;
+    color: #fff;
+    padding: 0;
+    margin-bottom: 32px;
+    width: 100vw;
+    box-shadow: 0 2px 8px rgba(51,102,204,0.07);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 56px;
+}
+
+nav a {
+    color: #fff;
+    margin: 0 22px;
+    font-size: 1.25em;
+    text-decoration: none;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 18px 0;
+    display: inline-block;
+    transition: color 0.2s, background 0.2s;
+    border-bottom: 2px solid transparent;
+}
+
+nav a:hover, nav a:focus {
+    color: #e7f0f7;
+    background: #254a90;
+    border-bottom: 2px solid #fff;
+    outline: none;
 }
 
 h1 {
     color: #3366cc;
-    margin-top: 30px;
+    margin-top: 36px;
+    font-size: 2.5em;
+    letter-spacing: 1px;
+    font-weight: 700;
 }
 
 ul.game-list {
     list-style: none;
     padding: 0;
-    margin: 20px auto;
-    display: inline-block;
-    text-align: left;
+    margin: 36px auto 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    max-width: 480px;
+    width: 95vw;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(51, 102, 204, 0.10);
+    align-items: stretch;
 }
 
 ul.game-list li {
-    margin: 10px 0;
+    margin: 0;
+    padding: 0;
 }
 
 a {
     color: #1a73e8;
     text-decoration: none;
-    font-weight: bold;
+    font-weight: 600;
+    font-size: 1.25em;
+    padding: 18px 24px;
+    display: block;
+    border-radius: 10px;
+    transition: background 0.2s, color 0.2s;
 }
 
-a:hover {
-    text-decoration: underline;
+a:hover, a:focus {
+    color: #254a90;
+    background: #f0f6ff;
+    outline: none;
 }
 
 button {
     background: #3366cc;
     color: #fff;
     border: none;
-    border-radius: 3px;
-    padding: 8px 20px;
-    margin: 10px;
-    font-size: 1em;
+    border-radius: 8px;
+    padding: 16px 36px;
+    margin: 32px auto 0 auto;
+    font-size: 1.15em;
+    font-weight: 600;
     cursor: pointer;
+    box-shadow: 0 2px 8px rgba(51, 102, 204, 0.10);
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    display: block;
 }
 
-button:hover {
+button:hover, button:focus {
     background: #254a90;
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 4px 16px rgba(51, 102, 204, 0.14);
+    outline: none;
+}
+
+button:active {
+    background: #19305c;
+    transform: translateY(1px) scale(0.98);
+}
+
+/* Responsive design */
+@media (max-width: 700px) {
+    html {
+        font-size: 17px;
+    }
+    h1 {
+        font-size: 1.6rem;
+        margin-top: 24px;
+    }
+    nav {
+        font-size: 1em;
+        min-height: 48px;
+        margin-bottom: 18px;
+    }
+    nav a {
+        font-size: 1.08em;
+        margin: 0 8px;
+        padding: 12px 0;
+    }
+    ul.game-list {
+        max-width: 99vw;
+        width: 99vw;
+        border-radius: 0;
+        box-shadow: none;
+        margin-top: 12px;
+        gap: 10px;
+    }
+    a {
+        font-size: 1.08em;
+        padding: 14px 8px;
+        border-radius: 0;
+    }
+    button {
+        width: 98vw;
+        font-size: 1em;
+        padding: 16px 0;
+        margin: 18px auto 0 auto;
+        border-radius: 0;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #181c24;
+        color: #e7f0f7;
+    }
+    nav {
+        background: #222b45;
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(34,43,69,0.12);
+    }
+    nav a {
+        color: #7aaaff;
+    }
+    nav a:hover, nav a:focus {
+        color: #fff;
+        background: #2a3550;
+        border-bottom: 2px solid #7aaaff;
+    }
+    h1 {
+        color: #7aaaff;
+    }
+    ul.game-list {
+        background: #232b3b;
+        box-shadow: 0 4px 24px rgba(34,43,69,0.18);
+    }
+    a {
+        color: #7aaaff;
+    }
+    a:hover, a:focus {
+        color: #fff;
+        background: #2a3550;
+    }
+    button {
+        background: #254a90;
+        color: #fff;
+    }
+    button:hover, button:focus {
+        background: #3366cc;
+    }
 }
