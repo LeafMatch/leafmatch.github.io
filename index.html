@@ -20,14 +20,7 @@
     #game-modal {display:none;position:fixed;z-index:100;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);justify-content:center;align-items:center;}
     #game-content {background:#fff;color:#222;border-radius:16px;padding:32px 18px 24px 18px;min-width:320px;min-height:320px;max-width:98vw;max-height:98vh;overflow:auto;position:relative;box-shadow:0 4px 32px #001b3b1c;}
     #close-btn {position:absolute;top:8px;right:12px;font-size:1.7em;background:none;border:none;color:#888;cursor:pointer;}
-    .cell {
-      background:#eee;
-      border-radius:8px;
-      border:1.5px solid #ccc;
-      transition:background 0.15s;
-      color: #222;
-      font-weight: bold;
-    }
+    .cell {background:#eee;border-radius:8px;border:1.5px solid #ccc;transition:background 0.15s;color:#222;font-weight:bold;}
     .cell:hover {background:#d3e5ff;}
     #ttt-board {margin-top:16px;}
     #memory-board {display:grid;grid-template-columns:repeat(4,60px);gap:8px;margin:24px auto 10px auto;justify-content:center;}
@@ -78,6 +71,31 @@
         <div class="game-title">Guess the Number</div>
         <div class="game-desc">1 to 100</div>
       </div>
+      <div class="game-card" tabindex="0" onclick="openGame('pong')">
+        <div class="game-img">🏓</div>
+        <div class="game-title">Pong</div>
+        <div class="game-desc">Classic paddle game</div>
+      </div>
+      <div class="game-card" tabindex="0" onclick="openGame('breakout')">
+        <div class="game-img">🧱</div>
+        <div class="game-title">Breakout</div>
+        <div class="game-desc">Break the bricks</div>
+      </div>
+      <div class="game-card" tabindex="0" onclick="openGame('minesweeper')">
+        <div class="game-img">💣</div>
+        <div class="game-title">Minesweeper</div>
+        <div class="game-desc">Find the mines</div>
+      </div>
+      <div class="game-card" tabindex="0" onclick="openGame('invaders')">
+        <div class="game-img">👾</div>
+        <div class="game-title">Space Invaders</div>
+        <div class="game-desc">Shoot the aliens</div>
+      </div>
+      <div class="game-card" tabindex="0" onclick="openGame('tetris')">
+        <div class="game-img">🟦</div>
+        <div class="game-title">Tetris</div>
+        <div class="game-desc">Falling blocks</div>
+      </div>
     </div>
   </main>
   <div id="game-modal">
@@ -101,6 +119,11 @@
         if (game === 'rps') initRps();
         if (game === 'memory') initMemory();
         if (game === 'guess') initGuess();
+        if (game === 'pong') initPong();
+        if (game === 'breakout') initBreakout();
+        if (game === 'minesweeper') initMinesweeper();
+        if (game === 'invaders') initInvaders();
+        if (game === 'tetris') initTetris();
       }, 0);
     }
     function closeGame() {
@@ -109,8 +132,9 @@
       document.getElementById('main-content').style.display = '';
       window.onkeydown = null;
       window.onkeyup = null;
-      if(window._gameInterval){clearInterval(window._gameInterval);}
-      if(window._gameTimeout){clearTimeout(window._gameTimeout);}
+      for(const timer of ['_gameInterval','_gameTimeout','_gameLoop','_pongLoop','_breakoutLoop','_tetrisLoop']) {
+        if(window[timer]) { clearInterval(window[timer]); clearTimeout(window[timer]); window[timer] = null; }
+      }
     }
     function getGameHTML(game) {
       switch (game) {
@@ -124,6 +148,16 @@
           return `<h1>Memory Match</h1><div id="memory-board"></div><p id="memory-status"></p><button onclick="initMemory()">Restart</button>`;
         case 'guess':
           return `<h1>Guess the Number</h1><p>I'm thinking of a number between 1 and 100.</p><input id="guess-input" type="number" min="1" max="100" /><button onclick="checkGuess()">Guess</button><p id="guess-status"></p><button onclick="initGuess()">Restart</button>`;
+        case 'pong':
+          return `<h1>Pong</h1><canvas id="pong-canvas" width="500" height="300"></canvas><div class="game-controls">Player: W/S &nbsp;|&nbsp; CPU: Auto</div><button onclick="initPong()">Restart</button>`;
+        case 'breakout':
+          return `<h1>Breakout</h1><canvas id="breakout-canvas" width="480" height="320"></canvas><div class="game-controls">Move: Left/Right Arrows</div><button onclick="initBreakout()">Restart</button>`;
+        case 'minesweeper':
+          return `<h1>Minesweeper</h1><canvas id="minesweeper-canvas" width="240" height="240"></canvas><div class="game-controls">Left Click: Reveal &nbsp;|&nbsp; Right Click: Flag</div><button onclick="initMinesweeper()">Restart</button>`;
+        case 'invaders':
+          return `<h1>Space Invaders</h1><canvas id="invaders-canvas" width="400" height="300"></canvas><div class="game-controls">Move: Left/Right Arrows &nbsp;|&nbsp; Shoot: Space</div><button onclick="initInvaders()">Restart</button>`;
+        case 'tetris':
+          return `<h1>Tetris</h1><canvas id="tetris-canvas" width="200" height="400"></canvas><p id="tetris-score">Score: 0</p><button onclick="initTetris()">Restart</button>`;
         default: return '<p>Game not found.</p>';
       }
     }
@@ -337,6 +371,306 @@
       } else {
         document.getElementById('guess-status').textContent = 'Too high!';
       }
+    }
+    // Pong
+    function initPong() {
+      const canvas = document.getElementById('pong-canvas');
+      const ctx = canvas.getContext('2d');
+      let w = canvas.width, h = canvas.height;
+      let py = h/2-30, pvy = 0, cpuY = h/2-30, ball = {x:w/2,y:h/2,vx:4,vy:3}, pScore=0, cpuScore=0;
+      function draw() {
+        ctx.fillStyle="#222";ctx.fillRect(0,0,w,h);
+        ctx.fillStyle="#fff";
+        ctx.fillRect(5,py,10,60);
+        ctx.fillRect(w-15,cpuY,10,60);
+        ctx.beginPath(); ctx.arc(ball.x,ball.y,7,0,2*Math.PI); ctx.fill();
+        ctx.font="18px Arial";ctx.fillText(`You: ${pScore}   CPU: ${cpuScore}`,w/2-60,24);
+      }
+      function update() {
+        py += pvy;
+        if(py<0) py=0; if(py>h-60) py=h-60;
+        // CPU AI
+        cpuY += ((ball.y-30)-cpuY)*0.09;
+        if(cpuY<0)cpuY=0;if(cpuY>h-60)cpuY=h-60;
+        ball.x += ball.vx; ball.y += ball.vy;
+        if(ball.y<7||ball.y>h-7) ball.vy*=-1;
+        // Paddle collision
+        if(ball.x<22 && ball.y>py && ball.y<py+60) ball.vx*=-1;
+        if(ball.x>w-22 && ball.y>cpuY && ball.y<cpuY+60) ball.vx*=-1;
+        // Score
+        if(ball.x<0){cpuScore++;resetBall();}
+        if(ball.x>w){pScore++;resetBall();}
+        draw();
+      }
+      function resetBall(){ball.x=w/2;ball.y=h/2;ball.vx=4*(Math.random()<.5?1:-1);ball.vy=3*(Math.random()-.5);}
+      window.onkeydown = function(e){
+        if(e.key==="w"||e.key==="ArrowUp") pvy=-6;
+        if(e.key==="s"||e.key==="ArrowDown") pvy=6;
+      }
+      window.onkeyup = function(e){
+        if(["w","ArrowUp","s","ArrowDown"].includes(e.key)) pvy=0;
+      }
+      clearInterval(window._pongLoop);
+      window._pongLoop = setInterval(update,1000/60);
+    }
+    // Breakout
+    function initBreakout() {
+      const canvas = document.getElementById('breakout-canvas');
+      const ctx = canvas.getContext('2d');
+      let w=canvas.width,h=canvas.height,pad={x:w/2-40,y:h-24,w:80,h:12},ball={x:w/2,y:h-40,vx:4,vy:-4,r:8},bricks=[],rows=5,cols=8,score=0;
+      function makeBricks() {
+        bricks=[];
+        for(let r=0;r<rows;r++)
+          for(let c=0;c<cols;c++)
+            bricks.push({x:20+c*55,y:40+r*26,w:45,h:16,hit:false});
+      }
+      function draw() {
+        ctx.fillStyle="#222";ctx.fillRect(0,0,w,h);
+        ctx.fillStyle="#fff";ctx.fillRect(pad.x,pad.y,pad.w,pad.h);
+        ctx.beginPath();ctx.arc(ball.x,ball.y,ball.r,0,2*Math.PI);ctx.fill();
+        bricks.forEach(b=>{if(!b.hit){ctx.fillStyle="#7aaaff";ctx.fillRect(b.x,b.y,b.w,b.h);}});
+        ctx.font="18px Arial";ctx.fillText(`Score: ${score}`,15,22);
+      }
+      function update() {
+        ball.x+=ball.vx;ball.y+=ball.vy;
+        if(ball.x<ball.r||ball.x>w-ball.r)ball.vx*=-1;
+        if(ball.y<ball.r)ball.vy*=-1;
+        if(ball.x>pad.x&&ball.x<pad.x+pad.w&&ball.y+ball.r>pad.y)ball.vy=-Math.abs(ball.vy);
+        if(ball.y>h){ alert("Game Over! Score: "+score); clearInterval(window._breakoutLoop); }
+        for(const b of bricks)
+          if(!b.hit && ball.x>b.x&&ball.x<b.x+b.w&&ball.y-ball.r<b.y+b.h&&ball.y+ball.r>b.y){ b.hit=true; ball.vy*=-1; score+=10;}
+        if(bricks.every(b=>b.hit)){ alert("You win! Score: "+score); clearInterval(window._breakoutLoop);}
+        draw();
+      }
+      window.onkeydown = function(e){
+        if(e.key==="ArrowLeft"||e.key==="a") pad.x-=18;
+        if(e.key==="ArrowRight"||e.key==="d") pad.x+=18;
+        pad.x=Math.max(0,Math.min(canvas.width-pad.w,pad.x));
+      }
+      makeBricks();score=0;
+      ball.x=w/2;ball.y=h-40;ball.vx=4;ball.vy=-4;
+      draw();
+      clearInterval(window._breakoutLoop);
+      window._breakoutLoop = setInterval(update,1000/60);
+    }
+    // Minesweeper
+    function initMinesweeper() {
+      const canvas = document.getElementById('minesweeper-canvas');
+      const ctx = canvas.getContext('2d');
+      const S=8, SIZE=30, MINES=10;
+      let board=[], revealed=[], flagged=[], gameOver=false;
+      function setup() {
+        board=Array(S*S).fill(0);
+        revealed=Array(S*S).fill(false);
+        flagged=Array(S*S).fill(false);
+        let placed=0;
+        while(placed<MINES){
+          let i=Math.floor(Math.random()*S*S);
+          if(board[i]!==9){ board[i]=9; placed++; }
+        }
+        for(let i=0;i<S*S;i++){
+          if(board[i]===9)continue;
+          for(let dx=-1;dx<=1;dx++)
+            for(let dy=-1;dy<=1;dy++){
+              let nx=i%S+dx, ny=Math.floor(i/S)+dy, nidx=ny*S+nx;
+              if(nx>=0&&nx<S&&ny>=0&&ny<S&&board[nidx]===9)board[i]++;
+            }
+        }
+      }
+      function draw() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        for(let y=0;y<S;y++)for(let x=0;x<S;x++){
+          let i=y*S+x;
+          ctx.strokeStyle="#333";ctx.strokeRect(x*SIZE,y*SIZE,SIZE,SIZE);
+          if(revealed[i]){
+            ctx.fillStyle="#ccc";ctx.fillRect(x*SIZE,y*SIZE,SIZE,SIZE);
+            if(board[i]===9){ctx.fillStyle="red";ctx.beginPath();ctx.arc(x*SIZE+SIZE/2,y*SIZE+SIZE/2,9,0,2*Math.PI);ctx.fill();}
+            else if(board[i]>0){ctx.fillStyle="#222";ctx.font="18px Arial";ctx.fillText(board[i],x*SIZE+10,y*SIZE+21);}
+          } else {
+            ctx.fillStyle="#aaa";ctx.fillRect(x*SIZE,y*SIZE,SIZE,SIZE);
+            if(flagged[i]){ctx.fillStyle="orange";ctx.font="18px Arial";ctx.fillText("⚑",x*SIZE+7,y*SIZE+23);}
+          }
+        }
+      }
+      function reveal(i){
+        if(flagged[i]||revealed[i])return;
+        revealed[i]=true;
+        if(board[i]===9){draw();setTimeout(()=>alert("Game Over!"),100);gameOver=true;return;}
+        if(board[i]===0){
+          for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){
+            let nx=i%S+dx,ny=Math.floor(i/S)+dy,ni=ny*S+nx;
+            if(nx>=0&&nx<S&&ny>=0&&ny<S)reveal(ni);
+          }
+        }
+      }
+      canvas.onmousedown=function(e){
+        if(gameOver)return;
+        let rect=canvas.getBoundingClientRect(),x=Math.floor((e.clientX-rect.left)/SIZE),y=Math.floor((e.clientY-rect.top)/SIZE),i=y*S+x;
+        if(e.button===2){flagged[i]=!flagged[i];}else{reveal(i);}
+        draw();
+      }
+      canvas.oncontextmenu=function(){return false;}
+      setup();draw();gameOver=false;
+    }
+    // Space Invaders
+    function initInvaders() {
+      const canvas = document.getElementById('invaders-canvas');
+      const ctx = canvas.getContext('2d');
+      let w=canvas.width,h=canvas.height;
+      let player = {x:w/2-20,y:h-30,w:40,h:10};
+      let bullets = [], aliens = [], dir=1,score=0,alive=true,alienDir=1,alienStep=20;
+      function resetAliens() {
+        aliens=[];
+        for(let r=0;r<4;r++) for(let c=0;c<8;c++)
+          aliens.push({x:30+c*40,y:30+r*28,w:28,h:16,alive:true});
+      }
+      function draw() {
+        ctx.fillStyle="#222";ctx.fillRect(0,0,w,h);
+        ctx.fillStyle="#fff";ctx.fillRect(player.x,player.y,player.w,player.h);
+        ctx.fillStyle="#0f0";
+        aliens.forEach(a=>{if(a.alive)ctx.fillRect(a.x,a.y,a.w,a.h);});
+        ctx.fillStyle="#f00";
+        bullets.forEach(b=>ctx.fillRect(b.x-2,b.y-8,4,12));
+        ctx.font="18px Arial";ctx.fillStyle="#fff";ctx.fillText(`Score: ${score}`,14,22);
+      }
+      function update() {
+        bullets.forEach(b=>b.y-=7);
+        aliens.forEach(a=>{
+          if(a.alive) a.x+=alienDir*2;
+        });
+        if(aliens.some(a=>a.x<8) || aliens.some(a=>a.x+a.w>w-8)) alienDir*=-1,aliens.forEach(a=>a.y+=alienStep);
+        bullets = bullets.filter(b=>b.y>-10);
+        for(const b of bullets)
+          for(const a of aliens)
+            if(a.alive && b.x>a.x&&b.x<a.x+a.w&&b.y>a.y&&b.y<a.y+a.h){
+              a.alive=false;b.y=-99;score+=10;
+            }
+        if(aliens.some(a=>a.alive&&a.y+h/10>player.y)){alive=false;}
+        draw();
+        if(!alive){alert("Game Over! Score: "+score);clearInterval(window._gameLoop);}
+        if(aliens.every(a=>!a.alive)){alert("You win! Score: "+score);clearInterval(window._gameLoop);}
+      }
+      window.onkeydown = function(e){
+        if(e.key==="ArrowLeft"||e.key==="a") player.x-=20;
+        if(e.key==="ArrowRight"||e.key==="d") player.x+=20;
+        if(e.key===" "||e.key==="ArrowUp") bullets.push({x:player.x+player.w/2,y:player.y});
+        player.x=Math.max(0,Math.min(w-player.w,player.x));
+      }
+      resetAliens();score=0;alive=true;bullets=[];
+      draw();
+      clearInterval(window._gameLoop);
+      window._gameLoop = setInterval(update,70);
+    }
+    // Tetris (basic)
+    function initTetris() {
+      const canvas = document.getElementById('tetris-canvas');
+      const ctx = canvas.getContext('2d');
+      const ROW = 20, COL = 10, SIZE = 20;
+      const shapes = [
+        [[1,1,1,1]], // I
+        [[1,1],[1,1]], // O
+        [[0,1,0],[1,1,1]], // T
+        [[1,1,0],[0,1,1]], // S
+        [[0,1,1],[1,1,0]], // Z
+        [[1,0,0],[1,1,1]], // J
+        [[0,0,1],[1,1,1]]  // L
+      ];
+      const colors = ["#0ff","#ff0","#f0f","#0f0","#f00","#00f","#fa0"];
+      let board, piece, score, gameOver;
+      function reset() {
+        board = Array.from({length:ROW},()=>Array(COL).fill(0));
+        score = 0; gameOver = false;
+        newPiece();
+        document.getElementById('tetris-score').textContent = "Score: 0";
+      }
+      function newPiece() {
+        let idx = Math.floor(Math.random()*shapes.length);
+        piece = {
+          x: 3, y: 0,
+          shape: shapes[idx].map(r=>r.slice()),
+          color: colors[idx]
+        };
+      }
+      function draw() {
+        ctx.fillStyle = "#222"; ctx.fillRect(0,0,200,400);
+        for(let r=0;r<ROW;r++) for(let c=0;c<COL;c++) {
+          if(board[r][c]) {
+            ctx.fillStyle = board[r][c];
+            ctx.fillRect(c*SIZE,r*SIZE,SIZE-1,SIZE-1);
+          }
+        }
+        if (piece) {
+          for(let r=0;r<piece.shape.length;r++)
+            for(let c=0;c<piece.shape[r].length;c++)
+              if(piece.shape[r][c])
+                ctx.fillStyle = piece.color,
+                ctx.fillRect((piece.x+c)*SIZE,(piece.y+r)*SIZE,SIZE-1,SIZE-1);
+        }
+      }
+      function collide(px,py,shape) {
+        for(let r=0;r<shape.length;r++)
+          for(let c=0;c<shape[r].length;c++)
+            if(shape[r][c] && (board[py+r] && board[py+r][px+c]) || px+c<0 || px+c>=COL || py+r>=ROW)
+              if(py+r>=0) return true;
+        return false;
+      }
+      function merge() {
+        for(let r=0;r<piece.shape.length;r++)
+          for(let c=0;c<piece.shape[r].length;c++)
+            if(piece.shape[r][c]) board[piece.y+r][piece.x+c]=piece.color;
+      }
+      function clearLines() {
+        let lines=0;
+        for(let r=ROW-1;r>=0;r--) {
+          if(board[r].every(Boolean)) {
+            board.splice(r,1); 
+            board.unshift(Array(COL).fill(0));
+            lines++;
+            r++;
+          }
+        }
+        if(lines) {
+          score += [0,100,300,500,800][lines];
+          document.getElementById('tetris-score').textContent = "Score: " + score;
+        }
+      }
+      function move(dx,dy) {
+        if(!collide(piece.x+dx,piece.y+dy,piece.shape)) {
+          piece.x+=dx; piece.y+=dy;
+          draw();
+          return true;
+        }
+        return false;
+      }
+      function rotate() {
+        let s = piece.shape, n = s.length, rot = Array.from({length:n},(_,i)=>Array(n).fill(0));
+        for(let r=0;r<n;r++) for(let c=0;c<n;c++) rot[c][n-1-r]=s[r][c]||0;
+        if(!collide(piece.x,piece.y,rot)) { piece.shape=rot; draw(); }
+      }
+      function drop() {
+        if(!move(0,1)) {
+          merge();
+          clearLines();
+          newPiece();
+          if(collide(piece.x,piece.y,piece.shape)) {
+            gameOver = true; clearInterval(window._tetrisLoop);
+            setTimeout(()=>alert("Game Over! Score: "+score),100);
+            return;
+          }
+        }
+        draw();
+      }
+      window.onkeydown = function(e) {
+        if(gameOver) return;
+        if(e.key==="ArrowLeft"||e.key==="a") move(-1,0);
+        if(e.key==="ArrowRight"||e.key==="d") move(1,0);
+        if(e.key==="ArrowDown"||e.key==="s") drop();
+        if(e.key==="ArrowUp"||e.key==="w") rotate();
+        if(e.key===" "){ while(move(0,1)); drop(); }
+      }
+      reset(); draw();
+      clearInterval(window._tetrisLoop);
+      window._tetrisLoop = setInterval(drop, 450);
     }
   </script>
 </body>
