@@ -84,16 +84,96 @@
             color: #888;
             cursor: pointer;
         }
+        .cell {
+            background: #eee;
+            border-radius: 8px;
+            border: 1.5px solid #ccc;
+            transition: background 0.15s;
+        }
+        .cell:hover {
+            background: #d3e5ff;
+        }
+        #ttt-board {
+            margin-top: 16px;
+        }
+        #memory-board {
+            display: grid;
+            grid-template-columns: repeat(4, 60px);
+            gap: 8px;
+            margin: 24px auto 10px auto;
+            justify-content: center;
+        }
+        .memory-card {
+            border-radius: 8px;
+            transition: background 0.2s;
+            user-select: none;
+            border: 1.5px solid #bbb;
+        }
+        .memory-card.flipped {
+            background: #fff9c4 !important;
+        }
+        .memory-card.matched {
+            background: #c8e6c9 !important;
+        }
+        .rps-btn {
+            margin: 4px 10px 4px 0;
+            font-size: 1.1em;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            background: #e3e9f9;
+            cursor: pointer;
+            transition: background 0.17s;
+        }
+        .rps-btn:hover {
+            background: #d1dffb;
+        }
+        input[type="number"] {
+            padding: 5px 10px;
+            font-size: 1.07em;
+            border-radius: 5px;
+            border: 1px solid #bbb;
+            margin-right: 8px;
+        }
+        button {
+            font-size: 1em;
+            padding: 7px 18px;
+            border-radius: 6px;
+            border: none;
+            background: #e7f0f7;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #d1e8ff;
+        }
+        nav {
+            background: #f6faff;
+            border-bottom: 1.5px solid #d7e4f7;
+            padding: 10px 0 10px 16px;
+        }
+        nav a {
+            color: #3366cc;
+            text-decoration: none;
+            font-weight: 600;
+            margin-right: 16px;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
         @media (max-width: 700px) {
             .game-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;}
             .game-card { min-height: 160px; padding: 12px 4px 10px 4px;}
             .game-img { width: 54px; height: 54px; font-size: 2em;}
+            #game-content { padding: 12px 4px 10px 4px; min-width: 0; }
         }
         @media (prefers-color-scheme: dark) {
+            body, html { background: #181e28 !important; }
             .game-card { background: #232b3b; color: #e7f0f7; }
             .game-title { color: #7aaaff; }
             .game-img { background: #232b3b; }
             #game-content { background: #232b3b; color: #e7f0f7; }
+            nav { background: #222a39; border-bottom-color: #25304a; }
         }
     </style>
 </head>
@@ -218,7 +298,7 @@
             if (game === 'frogger') initFrogger();
             if (game === 'galaga') initGalaga();
             if (game === 'doomlike') initDoomlike();
-            if (game === 'pacman') initTetris(); // Placeholder: Pacman not implemented, show Tetris
+            if (game === 'pacman') showPacmanMsg();
         }
         function closeGame() {
             document.getElementById('game-modal').style.display = 'none';
@@ -279,70 +359,70 @@
                 case 'tetris':
                     return `
                         <h1>Tetris</h1>
-                        <canvas id="tetris" width="200" height="400"></canvas>
+                        <canvas id="tetris" width="200" height="400" style="background:#222;display:block;margin:0 auto 12px auto;border:2px solid #333;"></canvas>
                         <p id="tetris-score">Score: 0</p>
                         <button onclick="initTetris()">Restart</button>
                     `;
                 case 'pong':
                     return `
                         <h1>Pong</h1>
-                        <canvas id="pong-canvas" width="500" height="300"></canvas>
+                        <canvas id="pong-canvas" width="500" height="300" style="background:#222;display:block;margin:0 auto 12px auto;border:2px solid #333;"></canvas>
                         <p>Player: W/S &nbsp;|&nbsp; CPU: Auto</p>
                         <button onclick="initPong()">Restart</button>
                     `;
                 case 'minesweeper':
                     return `
                         <h1>Minesweeper</h1>
-                        <canvas id="minesweeper-canvas" width="240" height="240"></canvas>
+                        <canvas id="minesweeper-canvas" width="240" height="240" style="background:#eee;display:block;margin:0 auto 12px auto;border:2px solid #333;"></canvas>
                         <p>Left Click: Reveal &nbsp;|&nbsp; Right Click: Flag</p>
                         <button onclick="initMinesweeper()">Restart</button>
                     `;
                 case 'invaders':
                     return `
                         <h1>Space Invaders</h1>
-                        <canvas id="invaders-canvas" width="400" height="300"></canvas>
+                        <canvas id="invaders-canvas" width="400" height="300" style="background:#222;display:block;margin:0 auto 12px auto;border:2px solid #333;"></canvas>
                         <p>Move: Left/Right Arrows &nbsp;|&nbsp; Shoot: Space</p>
                         <button onclick="initInvaders()">Restart</button>
                     `;
                 case 'breakout':
                     return `
                         <h1>Breakout</h1>
-                        <canvas id="breakout-canvas" width="480" height="320"></canvas>
+                        <canvas id="breakout-canvas" width="480" height="320" style="background:#222;display:block;margin:0 auto 12px auto;border:2px solid #333;"></canvas>
                         <p>Move: Left/Right Arrows</p>
                         <button onclick="initBreakout()">Restart</button>
                     `;
                 case 'asteroids':
                     return `
                         <h1>Asteroids</h1>
-                        <canvas id="asteroids-canvas" width="400" height="400"></canvas>
+                        <canvas id="asteroids-canvas" width="400" height="400" style="background:#222;display:block;margin:0 auto 12px auto;border:2px solid #333;"></canvas>
                         <p>Move: Arrow keys &nbsp;|&nbsp; Shoot: Space</p>
                         <button onclick="initAsteroids()">Restart</button>
                     `;
                 case 'arkanoid':
                     return `
                         <h1>Arkanoid</h1>
-                        <canvas id="arkanoid-canvas" width="480" height="320"></canvas>
+                        <canvas id="arkanoid-canvas" width="480" height="320" style="background:#222;display:block;margin:0 auto 12px auto;border:2px solid #333;"></canvas>
                         <p>Move: Left/Right Arrows</p>
                         <button onclick="initArkanoid()">Restart</button>
                     `;
                 case 'frogger':
                     return `
                         <h1>Frogger</h1>
-                        <canvas id="frogger-canvas" width="300" height="300"></canvas>
+                        <canvas id="frogger-canvas" width="300" height="300" style="background:#222;display:block;margin:0 auto 12px auto;border:2px solid #333;"></canvas>
                         <p>Move: Arrow Keys</p>
                         <button onclick="initFrogger()">Restart</button>
                     `;
                 case 'galaga':
                     return `
                         <h1>Galaga</h1>
-                        <canvas id="galaga-canvas" width="320" height="400"></canvas>
+                        <canvas id="galaga-canvas" width="320" height="400" style="background:#222;display:block;margin:0 auto 12px auto;border:2px solid #333;"></canvas>
                         <p>Move: Left/Right Arrows &nbsp;|&nbsp; Shoot: Space</p>
                         <button onclick="initGalaga()">Restart</button>
                     `;
                 case 'doomlike':
                     return `
                         <h1>DOOM-like Mini Shooter</h1>
-                        <canvas id="doom-canvas" width="320" height="200"></canvas>
+                        <canvas id="doom-canvas" width="320" height="200" style="background:#222;display:block;margin:0 auto 12px auto;border:2px solid #333;"></canvas>
                         <div id="controls">
                             <p>Move: W A S D &nbsp; | &nbsp; Turn: Arrow Left/Right &nbsp; | &nbsp; Shoot: Space</p>
                         </div>
@@ -359,8 +439,11 @@
             }
         }
 
-        // --- Game logic for each game (adapted from your HTML files) ---
-        // For brevity, only a few games are shown here. You can expand as needed.
+        // --- Game logic for each game (examples only for main games) ---
+
+        function showPacmanMsg() {
+            // Pacman placeholder
+        }
 
         // Tic-Tac-Toe
         function initTicTacToe() {
@@ -583,46 +666,17 @@
             }
         }
 
-        // Tetris
-        function initTetris() {
-            // ...You can adapt your tetris.html code here...
-        }
-        // Pong
-        function initPong() {
-            // ...You can adapt your pong.html code here...
-        }
-        // Minesweeper
-        function initMinesweeper() {
-            // ...You can adapt your minesweeper.html code here...
-        }
-        // Invaders
-        function initInvaders() {
-            // ...You can adapt your invaders.html code here...
-        }
-        // Breakout
-        function initBreakout() {
-            // ...You can adapt your breakout.html code here...
-        }
-        // Asteroids
-        function initAsteroids() {
-            // ...You can adapt your asteroids.html code here...
-        }
-        // Arkanoid
-        function initArkanoid() {
-            // ...You can adapt your arkanoid.html code here...
-        }
-        // Frogger
-        function initFrogger() {
-            // ...You can adapt your frogger.html code here...
-        }
-        // Galaga
-        function initGalaga() {
-            // ...You can adapt your galaga.html code here...
-        }
-        // Doomlike
-        function initDoomlike() {
-            // ...You can adapt your doomlike.html code here...
-        }
+        // Placeholders for the rest of the games
+        function initTetris() { alert("Tetris is not implemented in this demo."); }
+        function initPong() { alert("Pong is not implemented in this demo."); }
+        function initMinesweeper() { alert("Minesweeper is not implemented in this demo."); }
+        function initInvaders() { alert("Space Invaders is not implemented in this demo."); }
+        function initBreakout() { alert("Breakout is not implemented in this demo."); }
+        function initAsteroids() { alert("Asteroids is not implemented in this demo."); }
+        function initArkanoid() { alert("Arkanoid is not implemented in this demo."); }
+        function initFrogger() { alert("Frogger is not implemented in this demo."); }
+        function initGalaga() { alert("Galaga is not implemented in this demo."); }
+        function initDoomlike() { alert("DOOM-like is not implemented in this demo."); }
     </script>
 </body>
 </html>
